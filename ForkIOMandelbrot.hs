@@ -6,8 +6,10 @@ import qualified Data.Vector.Unboxed as V
 import Data.Complex
 import qualified Data.Text as Text
 import Control.Concurrent
+import Control.Monad (forM_)
+step = 0.0025
 
-step = 0.005
+mySquareList xs = forM_ xs (\(x,y,color)-> mySquare x y color)
 
 mySquare x y color = do
 
@@ -29,11 +31,11 @@ blackGreenBlue = ["000","0A0","0A0","0C0","0F0","0C5","0A6","087","078","069","0
 --intToHex n = (['A','A','B','B','C','C','D','D','E','E','F','F']) !! (if (n `div` 12) >= 12 then 11 else (n`div`12) ) 
 intToHex n =  blackGreen !! (if (n `div` 12) >= 12 then 11 else (n`div`12) ) 
 
-mandelbrot:: Double -> Double -> ((Double, Double),Int)
+mandelbrot:: Double -> Double -> (Double, Double,Text.Text)
 mandelbrot x y = let val = x :+ y
                      zs = take 255 $ iterate (\z -> z^2 +val) 0
                      iter = length $ takeWhile (\intermediate -> magnitude intermediate  < 2 ) $ zs
-                  in ((x,y),iter)
+                  in (x,y,Text.pack ("#"++(intToHex iter)))
 
 
 main :: IO ()
@@ -46,7 +48,7 @@ main = blankCanvas 3000 $ \ context -> do
           let vs = [v1,v2,v3,v4]
 
           sequence $ map (forkIO . (\v-> let res = map (\(x,y)-> mandelbrot x y) v 
-                               in send context $ sequence_ $ map (\((x,y),color)-> mySquare x y (Text.pack ("#"++(intToHex color)) )) res)) vs 
+                               in send context $ mySquareList res)) vs
           
           return ()
              
