@@ -20,10 +20,10 @@ browser to localhost:3000
 
 some example runtimes:
 
-Serial- 15.9 s
-ForkIO- 14.5 s
-ParMonad 2 cores -16.5 s
-Repa Serial - 15.5 s
-Repa Parallel 4 cores - 14.9 s
+* Serial- 15.9 s
+* ForkIO- 14.5 s
+* ParMonad 2 cores -16.5 s
+* Repa Serial - 15.5 s
+* Repa Parallel 4 cores - 14.9 s
 
 
