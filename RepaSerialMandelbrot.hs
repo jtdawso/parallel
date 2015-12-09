@@ -15,7 +15,8 @@ import qualified Data.ByteString.Char8 as BSC
 import Data.Array.Repa hiding ((++), map)
 import Data.Word  (Word32)
 import Data.Bits
-step = 0.0025
+
+step = 0.005
 
 convert :: Word32 -> String
 convert x = let words = [ fromIntegral (x `shiftR` 16)

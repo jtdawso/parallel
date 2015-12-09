@@ -10,7 +10,7 @@ import Data.Complex
 import qualified Data.Text as Text
 import Control.Concurrent
 import Control.Monad (forM_)
-step = 0.0025
+step = 0.005
 
 mySquareList xs = forM_ xs (\(x,y,color)-> mySquare x y color)
 
