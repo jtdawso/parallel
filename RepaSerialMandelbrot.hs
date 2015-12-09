@@ -1,5 +1,5 @@
--- File: ParMandelbrot.hs
--- Author: Justin Dawson
+-- File: RepaSerialMandelbrot.hs
+-- Author: Justin Dawson (JDawson@ku.edu)
  
 {-# LANGUAGE OverloadedStrings #-}
 module Main where

@@ -1,3 +1,6 @@
+--File: ForkIOMandelbrot.hs
+--Author: Justin Dawson (JDawson@ku.edu)
+
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
