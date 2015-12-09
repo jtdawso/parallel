@@ -64,6 +64,8 @@ main = blankCanvas 3000 $ \ context -> do
           let res = Repa.map (\(x,y)->mandelbrot x y) v 
           --print (length (filter (\(x,y) -> x < 0.5) v)) 
           --print (length (filter (\(x,y,color) -> x < 0.5) res)) 
-          send context $ mySquareList (toList (computeS res :: Array U DIM2 (Double,Double,Word32)):: [(Double,Double,Word32)])
+          send context $ do arr <- computeP res :: Canvas (Array U DIM2 (Double,Double,Word32))
+                            mySquareList (toList arr)
+
           return ()
              
