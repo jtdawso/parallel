@@ -9,33 +9,25 @@ import qualified Data.Vector.Unboxed as V
 import Data.Complex
 import qualified Data.Text as Text
 import Control.Monad
+import Debug.Trace
+import GHC.Word
 
-mySquareList xs = forM_ xs (\(x,y,color)-> mySquare x y color)
 
-mySquare x y color = do
+step= 0.0025
 
- save()
- translate((x*300)+800,(y*300)+500)
- fillStyle  color
- fillRect(0,0,2,2)
- restore()
- 
+mandelbrot :: Double -> Double -> [Word8]
+mandelbrot  x y = let val = x :+ y
+                      zs = take 255 $ iterate (\z -> z^2 + val) 0
+                      iter = fromIntegral $ length $ takeWhile (\intermediate -> magnitude intermediate < 2) zs
+                   in [iter,0,iter,255]
 
-step= 0.005
 
---intToHex n = (['0'..'9'] ++ ['A'..'F']) !! ((n `div` 16) ) 
-intToHex n = (['A','A','B','B','C','C','D','D','E','E','F','F']) !! (if (n `div` 12) >= 12 then 11 else (n`div`12) ) 
 
-mandelbrot:: Double -> Double -> (Double, Double,Text.Text)
-mandelbrot x y = let val = x :+ y
-                     zs = take 255 $ iterate (\z -> z^2 +val) 0
-                     iter = length $ takeWhile (\intermediate -> magnitude intermediate  < 2 ) $ zs
-                  in (x,y,Text.pack ("#"++(replicate 3 (intToHex iter))))
-
- 
-main :: IO ()
+main:: IO()
 main = blankCanvas 3000 $ \ context -> do
-          putStrLn "Start Request"
-          let v =  [(x,y)| y<-[1,(1-step) .. -1], x <-[-2, (-2 + step) .. 0.5]]
-          let res = map (\(x,y)->mandelbrot x y) $ v :: [(Double,Double,Text.Text)]
-          send context $ mySquareList res
+   putStrLn "Start Request"
+   let v =  [(x,y)| y<-[1,(1-step) .. -1], x <-[-2, (-2 + step) .. 0.5]]
+   let res = map (\(x,y)->mandelbrot x y) $ v 
+   send context $ do let w = ((abs . round) $ (0.5 - (-2)) / step) + 1
+                     let h = ((abs . round) $ ((-1) -1) / step) + 1
+                     putImageData (ImageData (fromIntegral w) (fromIntegral h) (V.fromList (concat res)), [0,0])
