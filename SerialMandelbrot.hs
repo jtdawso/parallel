@@ -12,8 +12,10 @@ import Control.Monad
 import Debug.Trace
 import GHC.Word
 
+import Data.Time
 
-step= 0.0025
+
+step= 0.00125
 
 mandelbrot :: Double -> Double -> [Word8]
 mandelbrot  x y = let val = x :+ y
@@ -24,10 +26,14 @@ mandelbrot  x y = let val = x :+ y
 
 
 main:: IO()
-main = blankCanvas 3000 $ \ context -> do
+main = blankCanvas 3000 {middleware=[]}$ \ context -> do
    putStrLn "Start Request"
+   start <- getCurrentTime
    let v =  [(x,y)| y<-[1,(1-step) .. -1], x <-[-2, (-2 + step) .. 0.5]]
    let res = map (\(x,y)->mandelbrot x y) $ v 
    send context $ do let w = ((abs . round) $ (0.5 - (-2)) / step) + 1
                      let h = ((abs . round) $ ((-1) -1) / step) + 1
                      putImageData (ImageData (fromIntegral w) (fromIntegral h) (V.fromList (concat res)), [0,0])
+   stop <- getCurrentTime
+   print $ diffUTCTime stop start
+   putStrLn "Finished"

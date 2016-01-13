@@ -16,7 +16,9 @@ import Data.Array.Repa hiding ((++), map)
 import Data.Word  (Word32)
 import Data.Bits
 
-step = 0.005
+import Data.Time
+
+step = 0.0025
 
 convert :: Word32 -> String
 convert x = let words = [ fromIntegral (x `shiftR` 16)
@@ -55,17 +57,21 @@ mandelbrot x y = let val = x :+ y
 
  
 main :: IO ()
-main = blankCanvas 3000 $ \ context -> do
+main = blankCanvas 3000 {middleware=[]}$ \ context -> do
           putStrLn "Received Request"
+          start <- getCurrentTime
+
           --let v =  [(x,y)| y<-[1,(1-step) .. -1], x <-[-2, (-2 + step) .. 0.5]]
           let h = (abs . round) $ (1.0 - (-1.0)) / step ::Int
           let w = (abs . round) $ ((-2.0) - 0.5)/step :: Int
 
           let v = fromFunction (Z :. w:. h) (\ (Z :. i :. j)-> ( (fromIntegral i)*step - 2, 1- (fromIntegral j) * step) )
           let res = Repa.map (\(x,y)->mandelbrot x y) v 
+
           --print (length (filter (\(x,y) -> x < 0.5) v)) 
           --print (length (filter (\(x,y,color) -> x < 0.5) res)) 
           send context $ mySquareList (toList (computeS res :: Array U DIM2 (Double,Double,Word32)):: [(Double,Double,Word32)])
 
-          return ()
+          stop <- getCurrentTime
+          print $ diffUTCTime stop start
              

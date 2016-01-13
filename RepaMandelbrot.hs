@@ -15,6 +15,8 @@ import Data.Array.Repa hiding ((++), map)
 import Data.Word  (Word32, Word8)
 import Data.Bits
 
+import Data.Time
+
 step = 0.0025
 
 convert :: Word32 -> [Word8]
@@ -34,6 +36,7 @@ mandelbrot x y = let val = x :+ y
 main :: IO ()
 main = blankCanvas 3000 {middleware=[]} $ \ context -> do
           putStrLn "Received Request"
+          start <- getCurrentTime
           --let v =  [(x,y)| y<-[1,(1-step) .. -1], x <-[-2, (-2 + step) .. 0.5]]
           let h = ((1+) . abs . round) $ ((-1) -1) / step
           let w = ((1+) . abs . round) $ (0.5 -(-2)) / step
@@ -42,6 +45,6 @@ main = blankCanvas 3000 {middleware=[]} $ \ context -> do
 
           send context $ do arr <- computeP res :: Canvas (Array U DIM2 Word32)
                             putImageData (ImageData (w) (h) ((V.fromList (concatMap convert (toList arr)))), [0,0])
-
-          return ()
+          stop <- getCurrentTime
+          print $ diffUTCTime stop start
              
