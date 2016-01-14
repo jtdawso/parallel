@@ -11,15 +11,14 @@ import qualified Data.ByteString as BS
 import Data.Bits as Bits
 import qualified Data.Vector.Unboxed as V
 
-step :: (Elt a, IsFloating a, IsNum a) => Exp a 
-step =  0.0025
+step = A.constant 0.0025
 
 mandelbrot
     ::  forall a. (Elt a, IsFloating a) => (Exp a,Exp a,Exp a, Exp a)
     -> Int
     -> Acc (Array DIM2 Int32)
 mandelbrot (xmin,ymin,xmax,ymax) depth =
-  generate (constant (Z:.(unlift screenY):.(unlift screenX)))
+  generate (constant (Z:.screenY:.screenX))
            (\ix -> let c = initial ix
                        iter = A.snd $ A.while (\zi -> A.snd zi A.<* lIMIT &&* dot (A.fst zi) A.<* 4) (\zi -> lift1 (next c) zi) (lift (c, constant 0))
                     in  iter
@@ -27,17 +26,17 @@ mandelbrot (xmin,ymin,xmax,ymax) depth =
                                        
   where
     -- The view plane
-    sizex                     = step
-    sizey                     = step
-    screenX                   = ((1+) . abs . A.round) $ (0.5 -(-2)) / step
-    screenY                   = ((1+) . abs . A.round) $ ((-1) -1) / step
+    sizex   :: Exp a          = lift step
+    sizey   :: Exp a          = lift step
+    screenX :: Exp a          = A.constant $ P.fromIntegral $ ((1+) . abs . A.round) $ (xmax - xmin) / step
+    screenY :: Exp a          = A.constant $ P.fromIntegral $ ((1+) . abs . A.round) $ (ymin -ymax) / step
     -- initial conditions for a given pixel in the window, translated to the
     -- corresponding point in the complex plane
     initial ::  Exp DIM2 -> Exp (Complex a)
     initial ix = lift ( (xmin + (x * sizex)) :+ (ymin + (y * sizey)) )
       where
-        pr = unindex2 ix
-        x ::  Exp a = A.fromIntegral (A.snd pr :: Exp Int)
+        pr :: Exp (Int, Int)= unindex2 ix
+        x :: Exp a = A.fromIntegral (A.snd pr :: Exp Int)
         y :: Exp a = A.fromIntegral (A.fst pr :: Exp Int)
 
     -- take a single step of the iteration
@@ -53,7 +52,7 @@ main :: IO()
 main = blankCanvas 3000 {middleware=[]} $ \ context -> do
           putStrLn "Start Request"
           start <- getCurrentTime
-          let res =  mandelbrot (-2,-1,0.5,1) 255 
+          let res =  mandelbrot (A.constant (-2)::Exp Double,A.constant (-1) :: Exp Double ,A.constant 0.5:: Exp Double,A.constant 1:: Exp Double) 255 
           let h =  ((1+) . abs . P.round) $ ((-1) -1) / step
           let w = ((1+) . abs . P.round) $ (0.5 -(-2)) / step
           let ans = run res 

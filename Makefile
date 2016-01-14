@@ -13,4 +13,4 @@ all: SerialMandelbrot.hs ForkIOMandelbrot.hs ParMandelbrot.hs RepaMandelbrot.hs 
 
 .PHONY:
 clean: 
-	rm SerialMandelbrot ForkIOMandelbrot ParMandelbrot RepaMandelbrot RepaSerialMandelbrot CudaMandelbrot *.o *.hi
+	rm -f SerialMandelbrot ForkIOMandelbrot ParMandelbrot RepaMandelbrot RepaSerialMandelbrot CudaMandelbrot *.o *.hi
