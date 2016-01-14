@@ -11,7 +11,7 @@ import qualified Data.ByteString as BS
 import Data.Bits as Bits
 import qualified Data.Vector.Unboxed as V
 
-step = A.constant 0.0025
+step =  0.0025
 
 mandelbrot
     ::  forall a. (Elt a, IsFloating a) => (Exp a,Exp a,Exp a, Exp a)
@@ -26,10 +26,11 @@ mandelbrot (xmin,ymin,xmax,ymax) depth =
                                        
   where
     -- The view plane
-    sizex   :: Exp a          = lift step
-    sizey   :: Exp a          = lift step
-    screenX :: Exp a          = A.constant $ P.fromIntegral $ ((1+) . abs . A.round) $ (xmax - xmin) / step
-    screenY :: Exp a          = A.constant $ P.fromIntegral $ ((1+) . abs . A.round) $ (ymin -ymax) / step
+    stepA   :: Exp a          = constant (A.fromIntegral step)
+    sizex   :: Exp a          =  stepA
+    sizey   :: Exp a          =  stepA
+    screenX :: Int          =  P.fromIntegral $ ((1+) . abs . A.round) $ (xmax - xmin) / stepA
+    screenY :: Int          =  P.fromIntegral $ ((1+) . abs . A.round) $ (ymin -ymax) / stepA
     -- initial conditions for a given pixel in the window, translated to the
     -- corresponding point in the complex plane
     initial ::  Exp DIM2 -> Exp (Complex a)
@@ -53,8 +54,8 @@ main = blankCanvas 3000 {middleware=[]} $ \ context -> do
           putStrLn "Start Request"
           start <- getCurrentTime
           let res =  mandelbrot (A.constant (-2)::Exp Double,A.constant (-1) :: Exp Double ,A.constant 0.5:: Exp Double,A.constant 1:: Exp Double) 255 
-          let h =  ((1+) . abs . P.round) $ ((-1) -1) / step
-          let w = ((1+) . abs . P.round) $ (0.5 -(-2)) / step
+          let h =  ((1+) . abs . P.round) $ ((-1) -1) / (step)
+          let w = ((1+) . abs . P.round) $ (0.5 -(-2)) / (step)
           let ans = run res 
           let iters = P.map (\v -> let word = P.fromIntegral v 
                                  in  BS.foldl (\acc x -> (acc `Bits.shiftL` 8) .|. (P.fromIntegral x)) zeroBits $ BS.pack $ [word,0,word])  $ toList ans
