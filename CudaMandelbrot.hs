@@ -11,17 +11,26 @@ import qualified Data.ByteString as BS
 import Data.Bits as Bits
 import qualified Data.Vector.Unboxed as V
 
+convert :: Word32 -> [Word8]
+convert x = let words = [ P.fromIntegral (x `Bits.shiftR` 16)
+                        , P.fromIntegral (x `Bits.shiftR` 8)
+                        , P.fromIntegral x
+                        , 255]
+             in words
+
+
+
 mandelbrot
     ::  forall a. (Elt a, IsFloating a)
     => Exp a
     -> (Exp a,Exp a,Exp a, Exp a)
     -> Int
-    -> Acc (Array DIM2 Int32)
+    -> Acc (Array DIM2 Word8)
 mandelbrot stepA (xmin,ymin,xmax,ymax) depth =
   generate ((index2 screenY screenX))
            (\ix -> let c = initial ix
                        iter = A.snd $ A.while (\zi -> A.snd zi A.<* lIMIT &&* dot (A.fst zi) A.<* 4) (\zi -> lift1 (next c) zi) (lift (c, constant 0))
-                    in  iter
+                    in  (A.fromIntegral iter)
            ) 
                                        
   where
@@ -52,20 +61,21 @@ main :: IO()
 main = blankCanvas 3000 {middleware=[]} $ \ context -> do
           putStrLn "Start Request"
           start <- getCurrentTime
-          let step = 0.00025
+          let step = 0.00125
          -- let res =  mandelbrot (A.constant step)(A.constant (-2)::Exp Double,A.constant (-1) :: Exp Double ,A.constant 0.5:: Exp Double,A.constant 1:: Exp Double) 255 
-          let (xmin,ymin,xmax,ymax) = (-1,-1,0,0.5)
-          let res =  mandelbrot (A.constant step)(A.constant xmin::Exp Double,A.constant ymin :: Exp Double ,A.constant xmax:: Exp Double,A.constant ymax:: Exp Double) 255 
+          let (xmin,ymin,xmax,ymax) = (-2,-1,0.5,1)
+          let res =  mandelbrot (A.constant step) (A.constant xmin::Exp Double,A.constant ymin :: Exp Double ,A.constant xmax:: Exp Double,A.constant ymax:: Exp Double) 255 
           let h :: Int =  (abs . P.round) $ (ymax - ymin) / ( step )
           let w ::Int= (abs . P.round) $ (xmax - xmin) / ( step ) 
           let ans = run res 
-          let iters = P.map (\v -> let word = P.fromIntegral v 
-                                 in  BS.foldl (\acc x -> (acc `Bits.shiftL` 8) .|. (P.fromIntegral x)) zeroBits $ BS.pack $ [word,0,word])  $ toList ans
+          let iters ::[Word32]= P.map (\v -> let word = P.fromIntegral v 
+                                 in  BS.foldl (\acc x -> (acc `Bits.shiftL` 8) .|. (P.fromIntegral x)) zeroBits $ BS.pack $ [word,word,word]) $ toList ans
           putStr "W: "
           print $ w
           putStr "H: "
           print $ h
-          send context $ putImageData (ImageData w h (V.fromList (iters)), [0,0])
+          print $ P.length iters
+          send context $ putImageData (ImageData (w) (h) (V.fromList (P.concatMap convert iters)), [0,0])
  
           stop <- getCurrentTime
           print $ diffUTCTime stop start
