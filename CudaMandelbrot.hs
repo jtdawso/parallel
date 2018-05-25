@@ -61,8 +61,7 @@ main :: IO()
 main = blankCanvas 3000 {middleware=[]} $ \ context -> do
           putStrLn "Start Request"
           start <- getCurrentTime
-          let step = 0.00125
-         -- let res =  mandelbrot (A.constant step)(A.constant (-2)::Exp Double,A.constant (-1) :: Exp Double ,A.constant 0.5:: Exp Double,A.constant 1:: Exp Double) 255 
+          let step = 0.000625
           let (xmin,ymin,xmax,ymax) = (-2,-1,0.5,1)
           let res =  mandelbrot (A.constant step) (A.constant xmin::Exp Double,A.constant ymin :: Exp Double ,A.constant xmax:: Exp Double,A.constant ymax:: Exp Double) 255 
           let h :: Int =  (abs . P.round) $ (ymax - ymin) / ( step )
@@ -70,11 +69,6 @@ main = blankCanvas 3000 {middleware=[]} $ \ context -> do
           let ans = run res 
           let iters ::[Word32]= P.map (\v -> let word = P.fromIntegral v 
                                  in  BS.foldl (\acc x -> (acc `Bits.shiftL` 8) .|. (P.fromIntegral x)) zeroBits $ BS.pack $ [word,word,word]) $ toList ans
-          putStr "W: "
-          print $ w
-          putStr "H: "
-          print $ h
-          print $ P.length iters
           send context $ putImageData (ImageData (w) (h) (V.fromList (P.concatMap convert iters)), [0,0])
  
           stop <- getCurrentTime

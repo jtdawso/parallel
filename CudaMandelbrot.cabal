@@ -17,6 +17,7 @@ cabal-version:       >=1.10
 
 executable CudaMandelbrot
   main-is:             CudaMandelbrot.hs
+  ghc-options:         -threaded
   -- other-modules:       
   other-extensions:    TemplateHaskell, DeriveDataTypeable, DeriveGeneric, OverloadedStrings, FlexibleContexts, ScopedTypeVariables
   build-depends:       base >=4.8 && <4.9
